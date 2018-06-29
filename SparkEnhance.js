@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     SparkEnhance
-// @version  4
+// @version  5
 // @grant    none
 // @match https://teams.webex.com/*
 // @require http://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
@@ -10,13 +10,18 @@ MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 SparkEnhance = {
   inAction: false,
-  init: function() {
+  inActionPerson: false,
+  init: () => {
     SparkEnhance.slowSetup();
   },
   
-  slowSetup: function() {
-    if(window.jQuery == null || window.jQuery("#conversation-list") == null || window.jQuery("#conversation-list").children().length == 0 || window.jQuery(".user-welcome").length > 5) {
+  slowSetup: () => {
+    if(window.jQuery == null || window.jQuery("#conversation-list") == null
+      || window.jQuery("#conversation-list").children().length === 0
+      || window.jQuery(".user-welcome").length > 5) {
+
       console.log("Spark isn't ready yet");
+      // Check to see if we're ready every 3 seconds
       setTimeout(SparkEnhance.slowSetup, 3000);
       return;
     }
@@ -26,13 +31,14 @@ SparkEnhance = {
     setTimeout(SparkEnhance.separate, 3000);
     window.jQuery("#conversation-list").on("change", SparkEnhance.seperate);
     
-    var observer = new MutationObserver(function(mutations, observer) {
+    let observer = new MutationObserver(function(mutations, observer) {
       if(SparkEnhance.inAction) {
         return;
       }
       SparkEnhance.separate();
       // putting this in a timeout to let things settle and then make it happen again.
       setTimeout(SparkEnhance.separate, 750);
+      setTimeout(SparkEnhance.separate, 1500);
     });
 
     // define what element should be observed by the observer
@@ -43,7 +49,7 @@ SparkEnhance = {
     });
     
     
-    var observer2 = new MutationObserver(function(mutations, observer) {
+    let observer2 = new MutationObserver(function(mutations, observer) {
       if(mutations[0].type === "attribute") {
         SparkEnhance.setLastPerson();
       }
@@ -57,9 +63,12 @@ SparkEnhance = {
     });
     
     SparkEnhance.overrideCss();
+    
+    // Just because spark is super tricky we'll do this
+    setInterval(SparkEnhance.separate, 5000);
   },
   
-  overrideCss: function() {
+  overrideCss: () => {
     window.additionalSheet.insertRule(".navigation-bar { background-color: #708090 !important; }");
     window.additionalSheet.insertRule(".space-list-section { background-color: #778899 !important; }");
     window.additionalSheet.insertRule(".activity-title { border-bottom-color: #cfcfcf !important; }");
@@ -71,22 +80,22 @@ SparkEnhance = {
     window.additionalSheet.insertRule(".activity-item .meta { color: #666 !important; }");
   },
   
-  separate: function() {
+  separate: () => {
     if(SparkEnhance.inAction) {
       return;
     }
     SparkEnhance.inAction = true;
-    console.log("Seperating");
+    console.log("Separating");
     
     
-    var listHolder = window.jQuery("#conversation-list");
-    var $ = window.jQuery;
+    let listHolder = window.jQuery("#conversation-list");
+    let $ = window.jQuery;
     
     $(".last-person", listHolder).removeClass("last-person");
     
-    var personList = [];
-    var spaceList = [];
-    var moreButton;
+    let personList = [];
+    let spaceList = [];
+    let moreButton;
     
     $(".cui-list-item", listHolder).each(function(index,space) { 
       if($(space).hasClass("convo-list-load-more")) {
@@ -136,15 +145,15 @@ SparkEnhance = {
     
   },
   
-  setLastPerson: function() {
-    if(SparkEnhance.inAction) {
+  setLastPerson: () => {
+    if(SparkEnhance.inAction || SparkEnhance.inActionPerson) {
       return;
     }
-    SparkEnhance.inAction = true;
+    SparkEnhance.inActionPerson = true;
     
     
-    var listHolder = window.jQuery("#conversation-list");
-    var $ = window.jQuery;
+    let listHolder = window.jQuery("#conversation-list");
+    let $ = window.jQuery;
     
     $(".last-person", listHolder).removeClass("last-person");
     
@@ -158,16 +167,16 @@ SparkEnhance = {
     
     // reset in action flag but with a delay
     setTimeout(function() {
-   	  SparkEnhance.inAction = false;
+      SparkEnhance.inActionPerson = false;
     }, 250);
   }
 }
 
 function addJQuery(callback) {
-  var script = document.createElement("script");
+  let script = document.createElement("script");
   script.setAttribute("src", "//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js");
   script.addEventListener('load', function() {
-    var script = document.createElement("script");
+    let script = document.createElement("script");
     //script.textContent = "window.jQ=jQuery.noConflict(true);(" + callback.toString() + ")();";
     document.body.appendChild(script);
   }, false);
@@ -176,7 +185,7 @@ function addJQuery(callback) {
 
 window.additionalSheet = (function() {
 	// Create the <style> tag
-	var style = document.createElement("style");
+	let style = document.createElement("style");
 
 	// Add a media (and/or media query) here if you'd like!
 	// style.setAttribute("media", "screen")
